@@ -1,20 +1,28 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import * as React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+
+import MapScreen from './src/screens/MapScreen';
+import NotificationsScreen from './src/screens/NotificationsScreen';
+import CustomDrawerContent from './src/components/CustomDrawerContent';
+import ContactDeveloperScreen from './src/screens/ContactDeveloperScreen';
+import GetHelpScreen from './src/screens/GetHelpScreen';
+
+const Drawer = createDrawerNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Drawer.Navigator
+        initialRouteName="Home"
+        // drawerContent={(props) => <CustomDrawerContent {...props} />}
+        >
+        <Drawer.Screen name="Мапа Києву" component={MapScreen} />
+        <Drawer.Screen name="Підтримка" component={GetHelpScreen} />
+        <Drawer.Screen name="Парки з проблемами" component={NotificationsScreen} />
+        <Drawer.Screen name="Парки без проблем" component={NotificationsScreen} />
+        <Drawer.Screen name="Зв'язатись з розробником" component={ContactDeveloperScreen} />
+      </Drawer.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

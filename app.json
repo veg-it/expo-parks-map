@@ -21,10 +21,24 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "googleServices": {
+        "mapsApiKey": "AIzaSyCj89gJFXG_iTkjdKSz74vSbWHgHf30z0s"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCj89gJFXG_iTkjdKSz74vSbWHgHf30z0s"
+        }
+      },
+      "package": "com.veg_it.parkmap"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "7542a17b-6428-4489-aad7-437273994e50"
+      }
     }
   }
 }
