@@ -23,8 +23,6 @@ function ContactDeveloperScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* <Text style={styles.title}>Зв'язатись з розробником можна відправив повідомлення на електронною адресою:{'\n'}admin@gmail.com</Text>
-      <Text style={styles.title}>Також ви можете використатати форму нижче</Text>     */}
       <Text style={styles.title}>
         Якщо Вам потрібно зв'язатись з розробником, надішліть електронне
         повідомлення на адресу{'\n'}{'\n'}<Text style={{fontWeight: '700'}}>admin@gmail.com</Text>{'\n'}{'\n'}Будь ласка, зазначте тему листа
