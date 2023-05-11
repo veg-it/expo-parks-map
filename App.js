@@ -3,7 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 
 import MapScreen from './src/screens/MapScreen';
-import NotificationsScreen from './src/screens/NotificationsScreen';
+import ParksWithProblems from './src/screens/ParksWithProlemsScreen';
+import ParksWithoutProlemsScreen from './src/screens/ParksWithoutProlemsScreen';
 import CustomDrawerContent from './src/components/CustomDrawerContent';
 import ContactDeveloperScreen from './src/screens/ContactDeveloperScreen';
 import GetHelpScreen from './src/screens/GetHelpScreen';
@@ -19,8 +20,8 @@ export default function App() {
         >
         <Drawer.Screen name="Мапа Києву" component={MapScreen} />
         <Drawer.Screen name="Підтримка" component={GetHelpScreen} />
-        <Drawer.Screen name="Парки з проблемами" component={NotificationsScreen} />
-        <Drawer.Screen name="Парки без проблем" component={NotificationsScreen} />
+        <Drawer.Screen name="Парки з проблемами" component={ParksWithProblems} />
+        <Drawer.Screen name="Парки без проблем" component={ParksWithoutProlemsScreen} />
         <Drawer.Screen name="Зв'язатись з розробником" component={ContactDeveloperScreen} />
       </Drawer.Navigator>
     </NavigationContainer>

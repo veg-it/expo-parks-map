@@ -1,31 +1,105 @@
-import React, { useRef, useState } from 'react'
-import { StyleSheet, View, Dimensions, Image } from 'react-native'
-import MapView, { Marker, PROVIDER_GOOGLE, UrlTile } from 'react-native-maps';
+import React, { useRef, useState, useEffect } from 'react'
+import {
+  StyleSheet,
+  View,
+  Dimensions,
+  Image,
+  ActivityIndicator,
+  PixelRatio,
+} from 'react-native'
+import MapView, { Marker, UrlTile } from 'react-native-maps'
 
 import CustomBottomSheet from '../components/CustomBottomSheet'
+import ParkMarkers from '../components/ParkMarkers'
 import mapStyle from '../styles/mapStyle'
-import parksData from '../data/parksData'
+import { useRoute } from '@react-navigation/native';
+
+import {
+  getParks,
+  getParksWithProblems,
+  getParksWithoutProblems,
+  getParksProblems,
+  deleteProblem,
+  addProblem,
+  addPark,
+} from '../api/index'
+
+const latLngToPixel = (lat, lng, zoomLevel) => {
+  const pixelRatio = PixelRatio.get()
+  const tileSize = 256 * pixelRatio
+  const scale = tileSize * (1 << zoomLevel)
+  const siny = Math.sin((lat * Math.PI) / 180)
+  const x = (tileSize * (0.5 + lng / 360)) / pixelRatio
+  const y =
+    (tileSize * (0.5 - Math.log((1 + siny) / (1 - siny)) / (4 * Math.PI))) /
+    pixelRatio
+  return { x, y }
+}
+
+const calculateMapPadding = (bounds) => {
+  const sw = latLngToPixel(
+    bounds.southWest.latitude,
+    bounds.southWest.longitude
+  )
+  const ne = latLngToPixel(
+    bounds.northEast.latitude,
+    bounds.northEast.longitude
+  )
+  const screenWidth = Dimensions.get('window').width
+  const screenHeight = Dimensions.get('window').height
+
+  return {
+    top: Math.max(0, (screenHeight - (ne.y - sw.y)) / 2),
+    bottom: Math.max(0, (screenHeight - (sw.y - ne.y)) / 2),
+    left: Math.max(0, (screenWidth - (sw.x - ne.x)) / 2),
+    right: Math.max(0, (screenWidth - (ne.x - sw.x)) / 2),
+  }
+}
 
 function MapScreen() {
   const bottomSheetRef = useRef()
   const [isAnimating, setIsAnimating] = useState(false)
   const [selectedPark, setSelectedPark] = useState(null)
   const mapRef = useRef(null)
+  const [parks, setParks] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [mapPadding, setMapPadding] = useState(null)
+  const route = useRoute();
 
-  const calculateCenter = (polygon) => {
-    let latitude = 0
-    let longitude = 0
-    const length = polygon.length
-
-    polygon.forEach((point) => {
-      latitude += point.latitude
-      longitude += point.longitude
-    })
-
-    return { latitude: latitude / length, longitude: longitude / length }
+  const initialRegion = {
+    latitude: 50.450001,
+    longitude: 30.523333,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
   }
 
-  const kievBounds = parksData.kievBounds
+  const kievBounds = {
+    northEast: {
+      latitude: 50.590707,
+      longitude: 30.798828,
+    },
+    southWest: {
+      latitude: 50.309104,
+      longitude: 30.247925,
+    },
+  }
+
+  useEffect(() => {
+    const fetchParks = async () => {
+      try {
+        const parksData = await getParks()
+        setMapPadding(calculateMapPadding(kievBounds))
+        setParks(parksData.features)
+      } catch (error) {
+        console.error('Error fetching parks data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchParks()
+  }, [])
+
 
   const handleRegionChange = (region) => {
     if (isAnimating) {
@@ -53,68 +127,56 @@ function MapScreen() {
     setIsAnimating(false)
   }
 
+  useEffect(() => {
+    if (route.params?.centerCoordinates) {
+      const { latitude, longitude } = route.params.centerCoordinates;
+      mapRef.current.animateToRegion(
+        {
+          ...initialRegion,
+          latitude,
+          longitude,
+        },
+        1000
+      );
+    }
+  }, [route.params?.centerCoordinates]);
+
   return (
     <View style={styles.container}>
-      <MapView
-        // ref={mapRef}
-        customMapStyle={mapStyle}
-        style={styles.map}
-        initialRegion={parksData.initialRegion}
-        provider={PROVIDER_GOOGLE}
-        showsUserLocation={false}
-        followsUserLocation={false}
-        // onRegionChange={handleRegionChange}
-        // onRegionChangeComplete={handleAnimateComplete}
-        minZoomLevel={3}
-        maxZoomLevel={18}>
-        <UrlTile 
-          urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          zIndex={1}
-        />
-        {parksData.kievParks.features.map((feature, index) => {
-          const polygon = feature.geometry.coordinates.map((coordsArr) => {
-            let coords = {
-              latitude: coordsArr[1],
-              longitude: coordsArr[0],
-            }
-            return coords
-          })
-
-          const t_selectedPark = {}
-          t_selectedPark.name = feature.properties.name
-          t_selectedPark.center = calculateCenter(polygon)
-          t_selectedPark.status = feature.properties.status
-          t_selectedPark.status_date = feature.properties.status_date
-          t_selectedPark.total_area = feature.properties.total_area
-
-          return (
-            <React.Fragment key={`park-${index}`}>
-              <MapView.Polygon
-                key={`polygon-${index}`}
-                coordinates={polygon}
-                fillColor="rgba(200, 0, 0, 0.5)"
-                strokeColor="rgba(0, 200, 0, 0.5)"
-              />
-              <Marker
-                key={`marker-${index}`}
-                coordinate={t_selectedPark.center}
-                onPress={() => {
-                  setSelectedPark(t_selectedPark)
-                  bottomSheetRef.current.open()
-                }}>
-                <Image
-                  source={require('../../assets/images/tree.png')}
-                  style={{ width: 32, height: 32 }}
-                />
-              </Marker>
-            </React.Fragment>
-          )
-        })}
-      </MapView>
-      <CustomBottomSheet
-        selectedPark={selectedPark}
-        bottomSheetRef={bottomSheetRef}
-      />
+      {isLoading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <>
+          <MapView
+            ref={mapRef}
+            customMapStyle={mapStyle}
+            style={styles.map}
+            initialRegion={initialRegion}
+            showsUserLocation={false}
+            followsUserLocation={false}
+            onRegionChange={handleRegionChange}
+            onRegionChangeComplete={handleAnimateComplete}
+            minZoomLevel={3}
+            maxZoomLevel={18}
+            mapPadding={mapPadding}>
+            <UrlTile
+              urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              zIndex={1}
+            />
+            <ParkMarkers
+              parks={parks}
+              onSelect={(selectedPark) => {
+                setSelectedPark(selectedPark)
+                bottomSheetRef.current.open()
+              }}
+            />
+          </MapView>
+          <CustomBottomSheet
+            selectedPark={selectedPark}
+            bottomSheetRef={bottomSheetRef}
+          />
+        </>
+      )}
     </View>
   )
 }
