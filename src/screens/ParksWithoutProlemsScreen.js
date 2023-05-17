@@ -10,9 +10,14 @@ import {
   TextInput,
 } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
+
 import { getParksWithoutProblems } from '../api/index'
 import { calculateCenter } from '../helpers/index'
+
 import Icon from 'react-native-vector-icons/FontAwesome'
+
+import CustomTextInput from '../components/elements/customInput'
+import ParkItem from '../components/ParkItem'
 
 function ParksWithoutProlemsScreen({ navigation }) {
   const [parksWithProblems, setparksWithProblems] = useState([])
@@ -33,40 +38,13 @@ function ParksWithoutProlemsScreen({ navigation }) {
       .includes(searchQuery.toLowerCase())
   })
 
-  const ParkItem = React.memo(function ParkItem({ park, onPress }) {
-
-    const polygon = park.geometry.coordinates.map((coordsArr) => {
-      let coords = {
-        latitude: coordsArr[1],
-        longitude: coordsArr[0],
-      }
-      return coords
-    })
-    const centerCoordinates = calculateCenter(polygon)
-
-    return (
-      <View key={park.parkId} style={styles.parkItem}>
-        <Icon name="tree" size={32} color="#4CAF50" />
-        <Text style={{ flex: 1, paddingLeft: 10 }}>{park.properties.name}</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View
-            style={[styles.problemIndicator, { backgroundColor: 'green' }]}
-          />
-          <TouchableOpacity onPress={() => onPress(centerCoordinates)}>
-            <Icon name="map-marker" size={32} color="#3f3f3f" />
-          </TouchableOpacity>
-        </View>
-      </View>
-    )
-  })
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.searchInput}
+      <CustomTextInput
         onChangeText={setSearchQuery}
         value={searchQuery}
-        placeholder="Поиск парка"
+        placeholder={"Поиск парка"}
       />
       <FlatList
         data={filteredParks}
@@ -79,6 +57,7 @@ function ParksWithoutProlemsScreen({ navigation }) {
               onPress={(centerCoordinates) =>
                 navigation.navigate('Мапа Києву', { centerCoordinates, park })
               }
+              type={1}
             />
           )
         }}
@@ -94,7 +73,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingTop: 110,
-    paddingHorizontal: 20
+    paddingHorizontal: 20,
   },
   searchInput: {
     padding: 16,

@@ -12,17 +12,26 @@ import {
 import BottomSheet from 'react-native-raw-bottom-sheet'
 import { getParksProblems, addProblem } from '../api/index'
 import AddProblemModal from './AddProblemModal'
+import CustomButton from './elements/customButton'
 
 function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
   const [problems, setProblems] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
+  const [problemModalVisible, setProblemModalVisible] = useState(false)
+
+  const handleProblemCloseModal = () => {
+    setProblemModalVisible(false)
+  }
+
+  const handleOpenProblemModal = () => {
+    setProblemModalVisible(true)
+  }
 
   const handleCloseModal = () => {
     setModalVisible(false)
   }
 
   const handleOpenModal = () => {
-    bottomSheetRef.current.close()
     setModalVisible(true)
   }
 
@@ -41,14 +50,14 @@ function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
     }
   }
 
-  const sendProblem = async (problem) => {
+  const sendProblem = async (problem, type) => {
     let date = new Date()
     const timestamp = Math.floor(date.getTime() / 1000)
     const sendData = {
       parkId: selectedPark.id,
       date: timestamp,
       about: problem,
-      is_solution: false,
+      is_solution: type ? true : false,
     }
     await addProblem(sendData)
     getProblems()
@@ -63,6 +72,7 @@ function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
             borderTopLeftRadius: 40,
             borderTopRightRadius: 40,
             backgroundColor: 'blue',
+            zIndex: 1,
           },
           { ...style },
         ]}
@@ -70,11 +80,11 @@ function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
     )
   }
   return (
-    <View>
+    
       <BottomSheet
         backgroundComponent={(props) => <BottomSheetBackground {...props} />}
         ref={bottomSheetRef}
-        style={{ borderRadius: 40, overflow: 'hidden' }}
+        style={{ borderRadius: 40, overflow: 'hidden', flex: 1 }}
         closeOnDragDown={true}
         height={400}
         openDuration={250}>
@@ -89,7 +99,7 @@ function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
               <View>
                 <Text style={styles.title}>{selectedPark?.name}</Text>
                 <Text style={styles.coord}>
-                  Координаты: {selectedPark?.center.latitude.toFixed(4)},{' '}
+                  Координати: {selectedPark?.center.latitude.toFixed(4)},{' '}
                   {selectedPark?.center.longitude.toFixed(4)}
                 </Text>
                 <Text style={styles.coord}>
@@ -109,7 +119,7 @@ function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
 
             <View style={{ marginTop: 15, height: 200 }}>
               <Text style={styles.date}>
-                Состояние парка на{' '}
+                Стан парку на{' '}
                 {selectedPark?.date
                   ? selectedPark.date
                   : new Date().toDateString()}
@@ -121,10 +131,18 @@ function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
                     keyExtractor={(item) => item.problemId.toString()}
                     renderItem={(problem) => {
                       return (
-                        <Text>
-                          Problem: {problem.item.about} Id:{' '}
-                          {problem.item.problemId}
-                        </Text>
+                        <View
+                          style={{
+                            backgroundColor: 'rgba(200, 0, 0, 0.5)',
+                            padding: 10,
+                            borderRadius: 8,
+                            marginTop: 10,
+                          }}>
+                          <Text style={{ color: '#fff' }}>
+                            Problem: {problem.item.about} Id:{' '}
+                            {problem.item.problemId}
+                          </Text>
+                        </View>
                       )
                     }}
                   />
@@ -134,28 +152,42 @@ function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
               </Text>
             </View>
           </View>
-          <View style={{ flexDirection: 'row' }}>
-            <TouchableOpacity
-              style={styles.customButton}
-              onPress={handleOpenModal}>
-              <Text style={styles.customButtonColor}>
-                Повідомити про проблему
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.customButton}>
-              <Text style={styles.customButtonColor}>
-                Повідомити про рішення
-              </Text>
-            </TouchableOpacity>
+
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+            <CustomButton
+              onPress={handleOpenProblemModal}
+              title={'Повідомити про \nпроблему'}
+            />
+            <CustomButton
+              onPress={handleOpenModal}
+              title={'Повідомити про \nрішення'}
+            />
           </View>
+
         </View>
+
+        <Modal visible={problemModalVisible}>
+          <View style={{ flex: 1, backgroundColor: '#fff' }}>
+            <AddProblemModal
+              onClose={handleProblemCloseModal}
+              onSubmit={sendProblem}
+              problem={true}
+            />
+          </View>
+        </Modal>
+
+        <Modal visible={modalVisible}>
+          <View style={{ flex: 1, backgroundColor: '#fff' }}>
+            <AddProblemModal
+              onClose={handleCloseModal}
+              onSubmit={sendProblem}
+              problem={false}
+            />
+          </View>
+        </Modal>
       </BottomSheet>
-      <Modal visible={modalVisible}>
-        <View style={{ flex: 1, backgroundColor: '#fff' }}>
-          <AddProblemModal onClose={handleCloseModal} onSubmit={sendProblem} />
-        </View>
-      </Modal>
-    </View>
+    
   )
 }
 
@@ -170,6 +202,7 @@ const styles = StyleSheet.create({
   coord: {
     fontSize: 14,
     color: '#3f3f3f',
+    marginTop: 3,
   },
   date: {
     fontSize: 14,

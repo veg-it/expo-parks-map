@@ -123,7 +123,7 @@ function MapScreen() {
   }, [route.params?.centerCoordinates])
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { zIndex: 0 }]}>
       {isLoading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
