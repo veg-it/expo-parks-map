@@ -24,7 +24,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#F3F4F6',
         color: '#374151',
         borderRadius: 16,
-        textAlignVertical: 'top'
+        textAlignVertical: 'top',
+        height: 300,
+        paddingTop: 20
       },
 })
 

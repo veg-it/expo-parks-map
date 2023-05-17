@@ -1,6 +1,6 @@
 import React from 'react'
 import { useState } from 'react'
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
 
 import Icon from 'react-native-vector-icons/Ionicons'
 import Constants from 'expo-constants'
@@ -11,7 +11,7 @@ import CustomButton from './elements/customButton'
 const AddProblemModal = ({ onClose, onSubmit, problem }) => {
   const [problemSaved, setProblemSaved] = useState()
   return (
-    <View
+    <ScrollView
       style={{
         backgroundColor: '#fff',
         flex: 1,
@@ -31,7 +31,7 @@ const AddProblemModal = ({ onClose, onSubmit, problem }) => {
             padding: 10,
             borderRadius: 8,
           }}>
-          <Icon name="arrow-back" color={'#fff'} size={32} />
+          <Icon name="arrow-back" color={'#fff'} size={24} />
         </TouchableOpacity>
       </View>
 
@@ -50,7 +50,7 @@ const AddProblemModal = ({ onClose, onSubmit, problem }) => {
         placeholder={'Напишіть короткий опис проблеми'}
       />
       <CustomButton onPress={() => onSubmit(problemSaved)} title={'Надіслати'}/>
-    </View>
+    </ScrollView>
   )
 }
 

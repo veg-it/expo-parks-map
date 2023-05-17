@@ -10,11 +10,11 @@ import {
   Modal,
 } from 'react-native'
 import BottomSheet from 'react-native-raw-bottom-sheet'
-import { getParksProblems, addProblem } from '../api/index'
+import { getParksProblems, addProblem, deleteProblem } from '../api/index'
 import AddProblemModal from './AddProblemModal'
 import CustomButton from './elements/customButton'
 
-function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
+function CustomBottomSheet({ bottomSheetRef, selectedPark, onDataUpdate }) {
   const [problems, setProblems] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
   const [problemModalVisible, setProblemModalVisible] = useState(false)
@@ -35,19 +35,31 @@ function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
     setModalVisible(true)
   }
 
+  const handleSendProblem = (problem) => {
+    sendProblem(problem, false)
+  }
+
+  const handleSendSolution = (problem) => {
+    sendProblem(problem, true)
+  }
+
   useEffect(() => {
     if (selectedPark?.id != null) {
-      console.log('useEffect for get problems')
       getProblems()
     }
   }, [selectedPark?.id])
 
   const getProblems = async () => {
-    console.log('getProblems')
     if (!!selectedPark.id) {
       const problems = await getParksProblems(selectedPark.id)
       setProblems(problems.problems)
     }
+  }
+
+  const handleDeleteProblem = async (problemID) => {
+    await deleteProblem(problemID)
+    getProblems()
+    onDataUpdate()
   }
 
   const sendProblem = async (problem, type) => {
@@ -61,133 +73,155 @@ function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
     }
     await addProblem(sendData)
     getProblems()
+    setProblemModalVisible(false)
     setModalVisible(false)
+    onDataUpdate()
   }
 
-  const BottomSheetBackground = ({ style }) => {
-    return (
-      <View
-        style={[
-          {
-            borderTopLeftRadius: 40,
-            borderTopRightRadius: 40,
-            backgroundColor: 'blue',
-            zIndex: 1,
-          },
-          { ...style },
-        ]}
-      />
-    )
-  }
   return (
-    
-      <BottomSheet
-        backgroundComponent={(props) => <BottomSheetBackground {...props} />}
-        ref={bottomSheetRef}
-        style={{ borderRadius: 40, overflow: 'hidden', flex: 1 }}
-        closeOnDragDown={true}
-        height={400}
-        openDuration={250}>
-        <View style={styles.container}>
-          <View style={{ flex: 1, paddingHorizontal: 10 }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
-              <View>
-                <Text style={styles.title}>{selectedPark?.name}</Text>
-                <Text style={styles.coord}>
-                  Координати: {selectedPark?.center.latitude.toFixed(4)},{' '}
-                  {selectedPark?.center.longitude.toFixed(4)}
-                </Text>
-                <Text style={styles.coord}>
-                  Площа:{' '}
-                  {selectedPark?.total_area
-                    ? selectedPark.total_area.toFixed(5) + ' км2'
-                    : 'Не зазначено'}
-                </Text>
-              </View>
-              <View>
-                <Image
-                  source={require('../../assets/images/tree.png')}
-                  style={{ width: 64, height: 64 }}
-                />
-              </View>
-            </View>
-
-            <View style={{ marginTop: 15, height: 200 }}>
-              <Text style={styles.date}>
-                Стан парку на{' '}
-                {selectedPark?.date
-                  ? selectedPark.date
-                  : new Date().toDateString()}
+    <BottomSheet
+      ref={bottomSheetRef}
+      style={{ borderRadius: 40, overflow: 'hidden', flex: 1 }}
+      closeOnDragDown={true}
+      height={500}
+      openDuration={250}>
+      <View style={styles.container}>
+        <View style={{ flex: 1, paddingHorizontal: 10 }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <View>
+              <Text style={styles.title}>{selectedPark?.name}</Text>
+              <Text style={styles.coord}>
+                Координати: {selectedPark?.center.latitude.toFixed(4)},{' '}
+                {selectedPark?.center.longitude.toFixed(4)}
               </Text>
-              <Text style={styles.description}>
-                {problems.length != 0 ? (
-                  <FlatList
-                    data={problems}
-                    keyExtractor={(item) => item.problemId.toString()}
-                    renderItem={(problem) => {
-                      return (
+              <Text style={styles.coord}>
+                Площа:{' '}
+                {selectedPark?.total_area
+                  ? selectedPark.total_area.toFixed(5) + ' км2'
+                  : 'Не зазначено'}
+              </Text>
+            </View>
+            <View>
+              <Image
+                source={require('../../assets/images/tree.png')}
+                style={{ width: 64, height: 64 }}
+              />
+            </View>
+          </View>
+
+          <View style={{ marginTop: 15, height: 200 }}>
+            <Text style={styles.date}>
+              Стан парку на{' '}
+              {selectedPark?.date
+                ? selectedPark.date
+                : new Date().toDateString()}
+            </Text>
+
+            {problems.length != 0 ? (
+              <View style={{height: 250}}>
+                <FlatList
+                  data={problems}
+                  vertical
+                  showsVerticalScrollIndicator={false}
+                  keyExtractor={(item) => item.problemId.toString()}
+                  renderItem={(problem) => {
+                    return (
+                      <TouchableOpacity
+                        style={{
+                          backgroundColor: problem.item.is_solution
+                            ? 'rgba(0, 200, 0, 0.5)'
+                            : 'rgba(200, 0, 0, 0.5)',
+                          padding: 10,
+                          borderRadius: 8,
+                          marginTop: 10,
+                        }}>
+                        <Text style={{ color: '#fff', fontSize: 12 }}>
+                          Опис проблеми:
+                        </Text>
+                        <Text
+                          style={{
+                            color: '#fff',
+                            marginVertical: 4,
+                            fontSize: 16,
+                          }}>
+                          {problem.item.about}
+                        </Text>
                         <View
                           style={{
-                            backgroundColor: 'rgba(200, 0, 0, 0.5)',
-                            padding: 10,
-                            borderRadius: 8,
-                            marginTop: 10,
+                            flexDirection: 'row',
+                            justifyContent: 'flex-end',
                           }}>
-                          <Text style={{ color: '#fff' }}>
-                            Problem: {problem.item.about} Id:{' '}
-                            {problem.item.problemId}
+                          <TouchableOpacity
+                            onPress={() =>
+                              handleDeleteProblem(problem.item.problemId)
+                            }>
+                            <Text
+                              style={{
+                                color: '#fff',
+                                fontSize: 12,
+                                textAlign: 'right',
+                                marginRight: 10,
+                              }}>
+                              Видалити
+                            </Text>
+                          </TouchableOpacity>
+
+                          <Text
+                            style={{
+                              color: '#fff',
+                              fontSize: 12,
+                            }}>
+                            id: {problem.item.problemId}
                           </Text>
                         </View>
-                      )
-                    }}
-                  />
-                ) : (
-                  'Проблем не знайдено'
-                )}
-              </Text>
-            </View>
+                      </TouchableOpacity>
+                    )
+                  }}
+                />
+              </View>
+            ) : (
+              <Text style={styles.description}>Проблем не знайдено</Text>
+            )}
           </View>
-
-          <View
-            style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-            <CustomButton
-              onPress={handleOpenProblemModal}
-              title={'Повідомити про \nпроблему'}
-            />
-            <CustomButton
-              onPress={handleOpenModal}
-              title={'Повідомити про \nрішення'}
-            />
-          </View>
-
         </View>
 
-        <Modal visible={problemModalVisible}>
-          <View style={{ flex: 1, backgroundColor: '#fff' }}>
-            <AddProblemModal
-              onClose={handleProblemCloseModal}
-              onSubmit={sendProblem}
-              problem={true}
-            />
-          </View>
-        </Modal>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+          <CustomButton
+            onPress={handleOpenProblemModal}
+            title={'Повідомити про \nпроблему'}
+          />
+          <CustomButton
+            onPress={handleOpenModal}
+            title={'Повідомити про \nрішення'}
+          />
+        </View>
+      </View>
 
-        <Modal visible={modalVisible}>
-          <View style={{ flex: 1, backgroundColor: '#fff' }}>
-            <AddProblemModal
-              onClose={handleCloseModal}
-              onSubmit={sendProblem}
-              problem={false}
-            />
-          </View>
-        </Modal>
-      </BottomSheet>
-    
+      <Modal visible={problemModalVisible}>
+        <View style={{ flex: 1, backgroundColor: '#fff' }}>
+          <AddProblemModal
+            onClose={handleProblemCloseModal}
+            onSubmit={handleSendProblem}
+            problem={true}
+          />
+        </View>
+      </Modal>
+
+      <Modal visible={modalVisible}>
+        <View style={{ flex: 1, backgroundColor: '#fff' }}>
+          <AddProblemModal
+            onClose={handleCloseModal}
+            onSubmit={handleSendSolution}
+            problem={false}
+          />
+        </View>
+      </Modal>
+    </BottomSheet>
   )
 }
 

@@ -35,7 +35,7 @@ function GetHelpScreen({ navigation }) {
         {'\n'}
 
       </Text>
-      <CustomTextInput
+      <TextInput
         style={styles.input}
         onChangeText={setName}
         value={name}

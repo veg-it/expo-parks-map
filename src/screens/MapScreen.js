@@ -1,116 +1,93 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   View,
   Dimensions,
-  Image,
   ActivityIndicator,
-  PixelRatio,
-  Text,
-} from 'react-native'
-import MapView from 'react-native-map-clustering'
-import { Marker, Polygon, PROVIDER_GOOGLE } from 'react-native-maps'
+} from 'react-native';
+import MapView from 'react-native-map-clustering';
+import { Marker, Polygon, PROVIDER_GOOGLE } from 'react-native-maps';
 
-import CustomBottomSheet from '../components/CustomBottomSheet'
-import ParkMarkers from '../components/ParkMarkers'
-import mapStyle from '../styles/mapStyle'
-import { useRoute } from '@react-navigation/native'
-import { calculateCenter } from '../helpers/index'
-import { useIsFocused } from '@react-navigation/native'
+import CustomBottomSheet from '../components/CustomBottomSheet';
+import mapStyle from '../styles/mapStyle';
+import { useRoute } from '@react-navigation/native';
+import { calculateCenter } from '../helpers/index';
+import { initialRegion, kievBounds } from '../data/index';
 
-import { getParks } from '../api/index'
+import { getParks } from '../api/index';
 
 function MapScreen() {
-  const isFocused = useIsFocused()
-  const bottomSheetRef = useRef()
-  const [isAnimating, setIsAnimating] = useState(false)
-  const [selectedPark, setSelectedPark] = useState(null)
-  const mapRef = useRef(null)
-  const [parks, setParks] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const route = useRoute()
+  const bottomSheetRef = useRef();
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [selectedPark, setSelectedPark] = useState(null);
+  const mapRef = useRef(null);
+  const [parks, setParks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const route = useRoute();
 
-  const initialRegion = {
-    latitude: 50.450001,
-    longitude: 30.523333,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  }
-
-  const kievBounds = {
-    northEast: {
-      latitude: 50.590707,
-      longitude: 30.798828,
-    },
-    southWest: {
-      latitude: 50.309104,
-      longitude: 30.247925,
-    },
-  }
+  const fetchParks = useCallback(async () => {
+    try {
+      const parksData = await getParks();
+      setParks(parksData.features);
+    } catch (error) {
+      console.error('Error fetching parks data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchParks = async () => {
-      try {
-        const parksData = await getParks()
-        setParks(parksData.features)
-      } catch (error) {
-        console.error('Error fetching parks data:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchParks()
-  }, [, isFocused])
+    fetchParks();
+  }, [fetchParks]);
 
   const onMapReady = () => {
     if (mapRef.current) {
-      const northEast = kievBounds.northEast
-      const southWest = kievBounds.southWest
+      const northEast = kievBounds.northEast;
+      const southWest = kievBounds.southWest;
 
       mapRef.current.fitToCoordinates([northEast, southWest], {
         edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
         animated: false,
-      })
+      });
     }
-  }
+  };
 
   const handleRegionChange = (region) => {
     if (isAnimating) {
-      return
+      return;
     }
 
-    const { northEast, southWest } = kievBounds
+    const { northEast, southWest } = kievBounds;
     if (
       region.latitude > northEast.latitude ||
       region.latitude < southWest.latitude ||
       region.longitude > northEast.longitude ||
       region.longitude < southWest.longitude
     ) {
-      const newRegion = { ...region }
+      const newRegion = { ...region };
       if (region.latitude > northEast.latitude) {
-        newRegion.latitude = northEast.latitude
+        newRegion.latitude = northEast.latitude;
       } else if (region.latitude < southWest.latitude) {
-        newRegion.latitude = southWest.latitude
+        newRegion.latitude = southWest.latitude;
       }
       if (region.longitude > northEast.longitude) {
-        newRegion.longitude = northEast.longitude
+        newRegion.longitude = northEast.longitude;
       } else if (region.longitude < southWest.longitude) {
-        newRegion.longitude = southWest.longitude
+        newRegion.longitude = southWest.longitude;
       }
 
-      setIsAnimating(true)
-      mapRef.current.animateToRegion(newRegion, 1000)
+      setIsAnimating(true);
+      mapRef.current.animateToRegion(newRegion, 1000);
     }
-  }
+  };
 
   const handleAnimateComplete = () => {
-    setIsAnimating(false)
-  }
+    setIsAnimating(false);
+  };
 
   useEffect(() => {
     if (route.params?.centerCoordinates) {
-      const { latitude, longitude } = route.params.centerCoordinates
+      const { latitude, longitude } = route.params.centerCoordinates;
       mapRef.current.animateToRegion(
         {
           ...initialRegion,
@@ -118,9 +95,9 @@ function MapScreen() {
           longitude,
         },
         1000
-      )
+      );
     }
-  }, [route.params?.centerCoordinates])
+  }, [route.params?.centerCoordinates]);
 
   return (
     <View style={[styles.container, { zIndex: 0 }]}>
@@ -139,23 +116,24 @@ function MapScreen() {
             clusterColor="#3f3f3f"
             onMapReady={onMapReady}
             onRegionChange={handleRegionChange}
-            onRegionChangeComplete={handleAnimateComplete}>
+            onRegionChangeComplete={handleAnimateComplete}
+          >
             {parks.flatMap((feature, index) => {
               const polygon = feature.geometry.coordinates.map((coordsArr) => {
                 let coords = {
                   latitude: coordsArr[1],
                   longitude: coordsArr[0],
-                }
-                return coords
-              })
+                };
+                return coords;
+              });
 
-              const t_selectedPark = {}
-              t_selectedPark.name = feature.properties.name
-              t_selectedPark.center = calculateCenter(polygon)
-              t_selectedPark.status = feature.properties.status
-              t_selectedPark.status_date = feature.properties.status_date
-              t_selectedPark.total_area = feature.properties.total_area
-              t_selectedPark.id = feature.parkId
+              const t_selectedPark = {};
+              t_selectedPark.name = feature.properties.name;
+              t_selectedPark.center = calculateCenter(polygon);
+              t_selectedPark.status = feature.properties.status;
+              t_selectedPark.status_date = feature.properties.status_date;
+              t_selectedPark.total_area = feature.properties.total_area;
+              t_selectedPark.id = feature.parkId;
 
               return [
                 <Polygon
@@ -187,21 +165,22 @@ function MapScreen() {
                       : 'rgba(0, 200, 0, 1)'
                   }
                   onPress={() => {
-                    setSelectedPark(t_selectedPark)
-                    bottomSheetRef.current.open()
+                    setSelectedPark(t_selectedPark);
+                    bottomSheetRef.current.open();
                   }}
                 />,
-              ]
+              ];
             })}
           </MapView>
           <CustomBottomSheet
             selectedPark={selectedPark}
             bottomSheetRef={bottomSheetRef}
+            onDataUpdate={fetchParks}
           />
         </>
       )}
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -215,6 +194,6 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height,
   },
-})
+});
 
-export default MapScreen
+export default MapScreen;

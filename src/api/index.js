@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://vegit.pythonanywhere.com/api'; // Замените на адрес вашего сервера, если он размещен удаленно
+const API_URL = 'https://lupray.pythonanywhere.com/api'; // Замените на адрес вашего сервера, если он размещен удаленно
 
 export const getParks = async () => {
   const response = await axios.get(`${API_URL}/getParks`);
