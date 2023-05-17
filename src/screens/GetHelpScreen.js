@@ -10,6 +10,8 @@ import {
 } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
 
+
+
 function GetHelpScreen({ navigation }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -33,7 +35,7 @@ function GetHelpScreen({ navigation }) {
         {'\n'}
 
       </Text>
-      <TextInput
+      <CustomTextInput
         style={styles.input}
         onChangeText={setName}
         value={name}
