@@ -31,9 +31,8 @@ const ParkMarkers = ({ parks, onSelect }) => {
     t_selectedPark.status = feature.properties.status;
     t_selectedPark.status_date = feature.properties.status_date;
     t_selectedPark.total_area = feature.properties.total_area;
-    t_selectedPark.id = feature.parkId;
 
-    return (
+    return [
       // <Polygon
       //   key={`polygon-${index}`}
       //   coordinates={polygon}
@@ -44,8 +43,13 @@ const ParkMarkers = ({ parks, onSelect }) => {
         key={`marker-${index}`}
         coordinate={t_selectedPark.center}
         onPress={() => onSelect(t_selectedPark)}
-      />
-    );
+      >
+        <Image
+          source={require('../../assets/images/tree.png')}
+          style={{ width: 32, height: 32 }}
+        />
+      </Marker>,
+    ];
   });
 
   return markersAndPolygons;

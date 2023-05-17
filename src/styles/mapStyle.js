@@ -1,3 +1,3 @@
-const mapStyle = require('./map2.json')
+const mapStyle = require('./map3.json')
 
 export default mapStyle

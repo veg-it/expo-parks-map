@@ -1,10 +1,60 @@
-import React, { useState } from 'react'
-import { StyleSheet, Text, View, TouchableOpacity, Image, ScrollView } from 'react-native'
-import { Icon } from 'react-native-elements'
+import React, { useState, useEffect } from 'react'
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  FlatList,
+  Modal,
+} from 'react-native'
 import BottomSheet from 'react-native-raw-bottom-sheet'
+import { getParksProblems, addProblem } from '../api/index'
+import AddProblemModal from './AddProblemModal'
 
 function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
-  
+  const [problems, setProblems] = useState([])
+  const [modalVisible, setModalVisible] = useState(false)
+
+  const handleCloseModal = () => {
+    setModalVisible(false)
+  }
+
+  const handleOpenModal = () => {
+    bottomSheetRef.current.close()
+    setModalVisible(true)
+  }
+
+  useEffect(() => {
+    if (selectedPark?.id != null) {
+      console.log('useEffect for get problems')
+      getProblems()
+    }
+  }, [selectedPark?.id])
+
+  const getProblems = async () => {
+    console.log('getProblems')
+    if (!!selectedPark.id) {
+      const problems = await getParksProblems(selectedPark.id)
+      setProblems(problems.problems)
+    }
+  }
+
+  const sendProblem = async (problem) => {
+    let date = new Date()
+    const timestamp = Math.floor(date.getTime() / 1000)
+    const sendData = {
+      parkId: selectedPark.id,
+      date: timestamp,
+      about: problem,
+      is_solution: false,
+    }
+    await addProblem(sendData)
+    getProblems()
+    setModalVisible(false)
+  }
+
   const BottomSheetBackground = ({ style }) => {
     return (
       <View
@@ -28,9 +78,7 @@ function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
         closeOnDragDown={true}
         height={400}
         openDuration={250}>
-        <View
-          style={styles.container}
-          >
+        <View style={styles.container}>
           <View style={{ flex: 1, paddingHorizontal: 10 }}>
             <View
               style={{
@@ -47,7 +95,7 @@ function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
                 <Text style={styles.coord}>
                   Площа:{' '}
                   {selectedPark?.total_area
-                    ? selectedPark.total_area + 'км2'
+                    ? selectedPark.total_area.toFixed(5) + ' км2'
                     : 'Не зазначено'}
                 </Text>
               </View>
@@ -58,23 +106,38 @@ function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
                 />
               </View>
             </View>
-            
-            <ScrollView style={{marginTop: 15,height: 200}}>
-            <Text style={styles.date}>
-              Состояние парка на{' '}
-              {selectedPark?.date
-                ? selectedPark.date
-                : new Date().toDateString()}
-            </Text>
-            <Text style={styles.description}>
-              {selectedPark?.status
-                ? selectedPark.status
-                : 'Проблем не знайдено'}
-            </Text>
-            </ScrollView>
+
+            <View style={{ marginTop: 15, height: 200 }}>
+              <Text style={styles.date}>
+                Состояние парка на{' '}
+                {selectedPark?.date
+                  ? selectedPark.date
+                  : new Date().toDateString()}
+              </Text>
+              <Text style={styles.description}>
+                {problems.length != 0 ? (
+                  <FlatList
+                    data={problems}
+                    keyExtractor={(item) => item.problemId.toString()}
+                    renderItem={(problem) => {
+                      return (
+                        <Text>
+                          Problem: {problem.item.about} Id:{' '}
+                          {problem.item.problemId}
+                        </Text>
+                      )
+                    }}
+                  />
+                ) : (
+                  'Проблем не знайдено'
+                )}
+              </Text>
+            </View>
           </View>
           <View style={{ flexDirection: 'row' }}>
-            <TouchableOpacity style={styles.customButton}>
+            <TouchableOpacity
+              style={styles.customButton}
+              onPress={handleOpenModal}>
               <Text style={styles.customButtonColor}>
                 Повідомити про проблему
               </Text>
@@ -87,16 +150,17 @@ function CustomBottomSheet({ bottomSheetRef, selectedPark }) {
           </View>
         </View>
       </BottomSheet>
+      <Modal visible={modalVisible}>
+        <View style={{ flex: 1, backgroundColor: '#fff' }}>
+          <AddProblemModal onClose={handleCloseModal} onSubmit={sendProblem} />
+        </View>
+      </Modal>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    // backgroundColor: '#f1f3f6',
-    // paddingTop: 50,
-    // borderTopLeftRadius: 20,
-    // borderTopRightRadius: 20,
     flex: 1,
     padding: 10,
   },
@@ -109,7 +173,7 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 14,
-    
+
     marginBottom: 5,
     fontWeight: '700',
   },
@@ -120,7 +184,7 @@ const styles = StyleSheet.create({
   customButton: {
     padding: 10,
     flex: 1,
-    backgroundColor: '#1c73e8',
+    backgroundColor: '#3f3f3f',
     margin: 10,
     borderRadius: 8,
   },

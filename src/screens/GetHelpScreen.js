@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+    
   },
   title: {
     fontSize: 18,
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   submitButton: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#3f3f3f',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 4,

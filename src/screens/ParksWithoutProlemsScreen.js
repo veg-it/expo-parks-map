@@ -34,18 +34,26 @@ function ParksWithoutProlemsScreen({ navigation }) {
   })
 
   const ParkItem = React.memo(function ParkItem({ park, onPress }) {
-    const centerCoordinates = calculateCenter(park.geometry.coordinates)
+
+    const polygon = park.geometry.coordinates.map((coordsArr) => {
+      let coords = {
+        latitude: coordsArr[1],
+        longitude: coordsArr[0],
+      }
+      return coords
+    })
+    const centerCoordinates = calculateCenter(polygon)
 
     return (
       <View key={park.parkId} style={styles.parkItem}>
         <Icon name="tree" size={32} color="#4CAF50" />
-        <Text style={{ flex: 1 , paddingLeft: 10}}>{park.properties.name}</Text>
+        <Text style={{ flex: 1, paddingLeft: 10 }}>{park.properties.name}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View
             style={[styles.problemIndicator, { backgroundColor: 'green' }]}
           />
           <TouchableOpacity onPress={() => onPress(centerCoordinates)}>
-            <Icon name="map-marker" size={32} color="#F44336" />
+            <Icon name="map-marker" size={32} color="#3f3f3f" />
           </TouchableOpacity>
         </View>
       </View>
@@ -62,12 +70,14 @@ function ParksWithoutProlemsScreen({ navigation }) {
       />
       <FlatList
         data={filteredParks}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item: park }) => {
           return (
             <ParkItem
               park={park}
               onPress={(centerCoordinates) =>
-                navigation.navigate('Мапа Києву', { centerCoordinates })
+                navigation.navigate('Мапа Києву', { centerCoordinates, park })
               }
             />
           )
@@ -83,18 +93,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    paddingTop: 110,
+    paddingHorizontal: 20
   },
   searchInput: {
-    margin: 10,
-    borderColor: '#999',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    padding: 16,
+    marginBottom: 12,
+    backgroundColor: '#F3F4F6',
+    color: '#374151',
+    borderRadius: 16,
   },
   parkItem: {
     marginHorizontal: 10,
-    padding: 20,
+    paddingVertical: 20,
     marginVertical: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',

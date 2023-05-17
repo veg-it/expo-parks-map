@@ -35,16 +35,23 @@ function ParksWithProblems({ navigation }) {
 
   const getProblemIndicatorColor = (problemScore) => {
     if (problemScore <= 0) {
-      return 'green'
-    } else if (problemScore >= 1 && problemScore <= 2) {
-      return 'yellow'
+      return 'rgba(0, 200, 0, 1)'
+    } else if (problemScore >= 1 && problemScore <= 3) {
+      return 'rgba(255, 102, 0, 1)'
     } else {
-      return 'red'
+      return 'rgba(200, 0, 0, 1)'
     }
   }
 
   const ParkItem = React.memo(function ParkItem({ park, onPress }) {
-    const centerCoordinates = calculateCenter(park.geometry.coordinates)
+    const polygon = park.geometry.coordinates.map((coordsArr) => {
+      let coords = {
+        latitude: coordsArr[1],
+        longitude: coordsArr[0],
+      }
+      return coords
+    })
+    const centerCoordinates = calculateCenter(polygon)
     const problemIndicatorColor = getProblemIndicatorColor(
       park.properties.problem_score
     )
@@ -55,10 +62,13 @@ function ParksWithProblems({ navigation }) {
         <Text style={{ flex: 1, paddingLeft: 10 }}>{park.properties.name}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View
-            style={[styles.problemIndicator, { backgroundColor: problemIndicatorColor }]}
+            style={[
+              styles.problemIndicator,
+              { backgroundColor: problemIndicatorColor },
+            ]}
           />
           <TouchableOpacity onPress={() => onPress(centerCoordinates)}>
-            <Icon name="map-marker" size={32} color="#F44336" />
+            <Icon name="map-marker" size={32} color="#3f3f3f" />
           </TouchableOpacity>
         </View>
       </View>
@@ -75,6 +85,8 @@ function ParksWithProblems({ navigation }) {
       />
       <FlatList
         data={filteredParks}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item: park }) => {
           return (
             <ParkItem
@@ -96,18 +108,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    paddingTop: 110,
+    paddingHorizontal: 20,
   },
   searchInput: {
-    margin: 10,
-    borderColor: '#999',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    padding: 16,
+    marginBottom: 12,
+    backgroundColor: '#F3F4F6',
+    color: '#374151',
+    borderRadius: 16,
   },
   parkItem: {
     marginHorizontal: 10,
-    padding: 20,
+    paddingVertical: 20,
     marginVertical: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
