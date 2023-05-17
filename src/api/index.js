@@ -29,7 +29,6 @@ export const deleteProblem = async (problemId) => {
 
 export const addProblem = async (problemData) => {
   const response = await axios.post(`${API_URL}/addProblem`, problemData);
-  console.log(response)
   return response.data;
 };
 
