@@ -5,7 +5,6 @@ import {
   View,
   TouchableOpacity,
   Image,
-  ScrollView,
   FlatList,
   Modal,
 } from 'react-native'
@@ -123,7 +122,7 @@ function CustomBottomSheet({ bottomSheetRef, selectedPark, onDataUpdate }) {
             </Text>
 
             {problems.length != 0 ? (
-              <View style={{height: 250}}>
+              <View style={{ height: 250 }}>
                 <FlatList
                   data={problems}
                   vertical
@@ -240,25 +239,12 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 14,
-
     marginBottom: 5,
     fontWeight: '700',
   },
   description: {
     fontSize: 18,
     color: '#3f3f3f',
-  },
-  customButton: {
-    padding: 10,
-    flex: 1,
-    backgroundColor: '#3f3f3f',
-    margin: 10,
-    borderRadius: 8,
-  },
-  customButtonColor: {
-    color: '#fff',
-    fontSize: 18,
-    textAlign: 'center',
   },
 })
 

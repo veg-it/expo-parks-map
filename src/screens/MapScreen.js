@@ -102,7 +102,7 @@ function MapScreen() {
   return (
     <View style={[styles.container, { zIndex: 0 }]}>
       {isLoading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#000" />
       ) : (
         <>
           <MapView

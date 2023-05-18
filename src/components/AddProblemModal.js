@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
 
 import Icon from 'react-native-vector-icons/Ionicons'
-import Constants from 'expo-constants'
 
 import Multiline from './elements/customMultiline'
 import CustomButton from './elements/customButton'
@@ -16,7 +15,7 @@ const AddProblemModal = ({ onClose, onSubmit, problem }) => {
         backgroundColor: '#fff',
         flex: 1,
         padding: 20,
-        paddingTop: Constants.statusBarHeight
+        paddingTop: 40
       }}>
       <View
         style={{

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
-import Constants from 'expo-constants'
 
 const CustomHeaderOptions = ({ navigation, title }) => {
   return (
@@ -10,7 +9,7 @@ const CustomHeaderOptions = ({ navigation, title }) => {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: Constants.statusBarHeight,
+        paddingTop: 40,
         paddingHorizontal: 10,
       }}>
       <TouchableOpacity

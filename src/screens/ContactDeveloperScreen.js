@@ -3,12 +3,11 @@ import {
   StyleSheet,
   Text,
   View,
-  Button,
   TextInput,
-  TouchableOpacity,
   Alert,
 } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
+import CustomButton from '../components/elements/customButton'
 
 function ContactDeveloperScreen({ navigation }) {
   const [name, setName] = useState('')
@@ -49,10 +48,7 @@ function ContactDeveloperScreen({ navigation }) {
         placeholder="Ваше повідомлення"
         multiline
       />
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitButtonText}>Відправити</Text>
-      </TouchableOpacity>
-      {/* <Button onPress={() => navigation.navigate('MapScreen')} title="Back" /> */}
+      <CustomButton onPress={handleSubmit} title={'Відправити'} />
       <StatusBar style="auto" />
     </View>
   )
@@ -79,17 +75,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingHorizontal: 8,
     marginBottom: 12,
-  },
-  submitButton: {
-    backgroundColor: '#3f3f3f',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-    marginBottom: 12,
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
   },
 })
 
